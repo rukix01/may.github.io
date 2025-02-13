@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valentine's Music Player</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #ffeff3;
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-image: url('https://png.pngtree.com/thumb_back/fh260/background/20210105/pngtree-passionate-red-heart-shaped-love-background-image_530327.jpg');
+      background-size: cover;
+      overflow-x: hidden;
+    }
+    .container {
+      text-align: center;
+      padding: 1rem;
+      max-width: 90%;
+      margin: 1rem auto;
+    }
+    h1 {
+      color: #e91e63;
+      font-size: 2rem;
+      margin: 1rem 0;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .player-container {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 1.5rem;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(233, 30, 99, 0.3);
+      margin: 1rem 0;
+    }
+    .album-art {
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      margin: 1rem auto;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+    .album-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .player-controls {
+      margin: 1.5rem 0;
+    }
+    button {
+      background: #e91e63;
+      color: white;
+      border: none;
+      padding: 0.8rem 1.6rem;
+      border-radius: 30px;
+      font-size: 1rem;
+      margin: 0 0.4rem;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    button:hover {
+      transform: scale(1.1);
+      background: #c2185b;
+    }
+    .playlist {
+      list-style: none;
+      margin: 1.5rem 0;
+    }
+    .playlist li {
+      padding: 0.8rem;
+      margin: 0.4rem 0;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .playlist li:hover {
+      background: #ffe5ee;
+      transform: translateX(10px);
+    }
+    .heart {
+      position: absolute;
+      color: #e91e63;
+      animation: fall 6s linear infinite;
+      pointer-events: none;
+      opacity: 0.8;
+      filter: drop-shadow(0 0 2px rgba(233,30,99,0.3));
+    }
+    @keyframes fall {
+      0% {
+        transform: translateY(-50vh) translateX(-5vw) rotate(0deg);
+        opacity: 1;
+      }
+      50% {
+        transform: translateY(10vh) translateX(5vw) rotate(180deg);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(50vh) translateX(-5vw) rotate(360deg);
+        opacity: 0;
+      }
+    }
+    .heart:nth-child(2n) {
+      animation-delay: -1s;
+      color: #ff4081;
+    }
+    .heart:nth-child(3n) {
+      animation-delay: -2s;
+      color: #ff80ab;
+    }
+    .heart::before {
+      content: '❤';
+      position: absolute;
+      font-size: 1.2rem;
+    }
+    /* Add different heart sizes */
+    .heart.small::before { font-size: 1rem; }
+    .heart.medium::before { font-size: 1.5rem; }
+    .heart.large::before { font-size: 2rem; }
+    .message {
+      font-size: 1rem;
+      color: #ffd;
+      line-height: 1.4;
+      margin: 1.5rem 0;
+    }
+    .message img {
+      max-width: 80%;
+      height: auto;
+      display: block;
+      margin: 1rem auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+    #nowPlaying {
+      margin-bottom: 10px;
+    }
+    #progress {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>For My Valentine 💖</h1>
+
+    <div class="player-container">
+      <div class="album-art">
+        <img src="cd.jpg" alt="Love Songs" />
+      </div>
+
+      <div class="player-controls">
+        <button id="prevBtn">⏮</button>
+        <button id="playBtn">▶</button>
+        <button id="nextBtn">⏭</button>
+      </div>
+      <div id="nowPlaying">Select a song</div>
+      <input type="range" id="progress" value="0" />
+
+      <ul class="playlist" id="playlist">
+        <li data-src="line.m4a">Line Without a Hook</li>
+        <li data-src="perfect.m4a">Perfect - Ed Sheeran</li>
+        <li data-src="die.m4a">Die with a Smile</li>
+        <li data-src="blue.mp3">Blue - Yung Kai</li>
+      </ul>
+    </div>
+
+    <div class="message">
+      <h2>To My Love ❤️</h2>
+      <img src="may.jpg" alt="May" />
+      <p>
+        Every beat of my heart plays your melody.<br />
+        You are the song that makes my world complete.<br />
+        Happy Valentine's Day, my forever love.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Music Player Functionality
+    const player = new Audio();
+    const playlistItems = document.querySelectorAll('#playlist li');
+    const playBtn = document.getElementById('playBtn');
+    const progress = document.getElementById('progress');
+    const nowPlaying = document.getElementById('nowPlaying');
+    let currentSongIndex = 0;
+
+    function createHearts() {
+      const heartSizes = ['small', 'medium', 'large'];
+      for (let i = 0; i < 5; i++) { // Create 5 hearts at a time
+        const heart = document.createElement('div');
+        heart.classList.add('heart');
+        heart.classList.add(heartSizes[Math.floor(Math.random() * heartSizes.length)]);
+        heart.style.left = Math.random() * 100 + 'vw';
+        const duration = 5 + Math.random() * 3;
+        heart.style.animationDuration = `${duration}s`;
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), duration * 1000);
+      }
+    }
+
+    function playSong(index) {
+      const song = playlistItems[index];
+      player.src = song.dataset.src;
+      nowPlaying.textContent = song.textContent;
+      player.play();
+      playBtn.textContent = '⏸';
+      currentSongIndex = index;
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (player.paused) {
+        player.play();
+        playBtn.textContent = '⏸';
+      } else {
+        player.pause();
+        playBtn.textContent = '▶';
+      }
+    });
+
+    player.addEventListener('timeupdate', () => {
+      if (player.duration) {
+        progress.value = (player.currentTime / player.duration) * 100;
+      }
+    });
+
+    progress.addEventListener('input', () => {
+      if (player.duration) {
+        player.currentTime = (progress.value / 100) * player.duration;
+      }
+    });
+
+    player.addEventListener('ended', () => {
+      currentSongIndex = (currentSongIndex + 1) % playlistItems.length;
+      playSong(currentSongIndex);
+    });
+
+    playlistItems.forEach((item, index) => {
+      item.addEventListener('click', () => playSong(index));
+    });
+
+    createHearts();
+    setInterval(createHearts, 5000);
+
+    // Service Worker Registration for Caching
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then(registration => {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
